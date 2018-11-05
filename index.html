@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8">
+  <title>Gif-App</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/twitter-bootstrap/4.0.0/css/bootstrap.min.css" />
+</head>
+
+<body>
+  <div class="container">
+
+    <!-- Rendered buttons will get dumped here -->
+    <div id= "buttons-view"></div>
+
+    <div class="row">
+        <!-- Gifs will be dumped here -->
+        <div class="col-lg-7">
+            <div id="gif-view"></div>
+        </div>
+
+        <!-- This form will be where users input animals -->
+        <div class="col-lg-5">
+        <form id="animal-form">
+            <label for="animal-input">Add an animal</label>
+            <input type="text" id="animal-input"><br>
+
+        <!-- This button will trigger our AJAX call -->
+            <input id="find-animal" type="submit" value="Animal Search">
+        </form>
+        </div>
+    </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script type="text/javascript">
+
+    //Initial array of animals
+    var topics= ["dog", "cat", "otter"];
+
+    // displayAnimalGifs function re-renders the HTML to display the appropriate content
+    function displayAnimalGifs() {
+        
+            //Clears any displayed gifs
+        $("#gif-view").empty();
+
+        var API_KEY="dKFlpWExQYlX6lZsd7c5RWw0kNHnoVNe";
+        var animal = $(this).attr("data-animal");
+
+        var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
+            animal + "&api_key=" + API_KEY + "&limit=10";
+
+    $.ajax({
+        url: queryURL,
+        method: "GET"
+    }).then(function(response) {
+
+        console.log(response);
+
+        var results = response.data;
+
+        for (var i = 0; i < results.length; i++) {
+            
+            var animalDiv = $("<div>");
+            var p = $("<p>");
+                p.text("Rated: " + results[i].rating);
+
+            //Creating <img> tag
+            var animalgif = $("<img>");
+
+                animalgif.attr("src", results[i].images.fixed_height.url);
+                
+            animalDiv.append(p);
+            animalDiv.prepend(animalgif);
+
+        $("#gif-view").append(animalDiv);
+        };
+
+    })
+
+    $("")
+
+
+
+
+    };
+
+    //Function for displaying Animal Gifs
+    function renderButtons() {
+
+        $("#buttons-view").empty();
+        
+
+        for (var i = 0; i < topics.length; i++) {
+            var bttn = $("<button>");
+                //Adding a class to the button
+            bttn.addClass("animal");
+                //adding attr 
+            bttn.attr("data-animal", topics[i]);
+            bttn.text(topics[i]);
+                //Add button to HTML
+            $("#buttons-view").append(bttn);
+        }
+    };
+
+    $("#find-animal").on("click", function(event){
+        event.preventDefault();
+
+            //Grabs input from textbox
+        var animal = $("#animal-input").val().trim();
+            //Animal is added to Topics array
+        topics.push(animal);
+            //renderButtons function then processes the topics array
+        renderButtons();
+    });
+
+    //Adding click event listeners to all elements with a class of "animal"
+    $(document).on("click", ".animal", displayAnimalGifs);
+        //renderButtons function displays initial buttons
+    renderButtons();
+
+
+    </script>
+</body>
+</html>

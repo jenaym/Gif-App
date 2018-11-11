@@ -8,32 +8,85 @@
 </head>
 
 <body>
-  <div class="container">
+  <!-- <div class="container"> -->
 
     <!-- Rendered buttons will get dumped here -->
     <div id= "buttons-view"></div>
 
     <div class="row">
         <!-- Gifs will be dumped here -->
-        <div class="col-lg-7">
+        <div class="col-lg-9">
             <div id="gif-view"></div>
         </div>
 
         <!-- This form will be where users input animals -->
-        <div class="col-lg-5">
+        <div class="col-lg-3">
         <form id="animal-form">
-            <label for="animal-input">Add an animal</label>
-            <input type="text" id="animal-input"><br>
+            <label for="animal-input"><strong>Add an animal</strong></label>
+            <input class="form-control" type="text" id="animal-input"><br>
 
         <!-- This button will trigger our AJAX call -->
             <input id="find-animal" type="submit" value="Animal Search">
         </form>
         </div>
     </div>
-    </div>
-
+    <!-- </div> -->
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <style type="text/css">
+
+        button, #find-animal {
+            display: inline-block;
+            margin: 5px;
+            padding: 3px 15px;
+            border-radius: 3px;
+            background-color: darkcyan;
+            color: white;
+            margin-bottom: 25px;
+            
+        }
+        body {
+            margin: 15px;
+        }
+        .gifDiv {
+            margin: 5px;
+            display: inline-block;
+            position: relative;
+        }
+
+        p {
+           display: block;
+        }
+
+        .like-btn {
+            background: url('https://cssanimation.rocks/images/posts/steps/heart.png');
+            width: 80px;
+            height: 80px;
+            background-size: 2900%;
+            z-index: 1;
+            position: absolute;
+            bottom: 15%;
+            right: 3%;
+        }
+
+        .is-active {
+            animation-name: animate;
+            animation-duration: .8s;
+            animation-iteration-count: 1;
+            animation-timing-function: steps(28);
+            animation-fill-mode: forwards;
+        }
+        
+        @keyframes animate {
+            0%   { background-position: left;  }
+            50%  { background-position: right; }
+            100% { background-position: right; }
+        }
+
+    </style>
+
+
+
     <script type="text/javascript">
 
     //Initial array of animals
@@ -49,7 +102,7 @@
         var animal = $(this).attr("data-animal");
 
         var queryURL = "https://api.giphy.com/v1/gifs/search?q=" +
-            animal + "&api_key=" + API_KEY + "&limit=10";
+            animal + "&api_key=" + API_KEY + "&limit=10" + "&rating=g" + "&rating=pg";
 
     $.ajax({
         url: queryURL,
@@ -63,28 +116,59 @@
         for (var i = 0; i < results.length; i++) {
             
             var animalDiv = $("<div>");
+                animalDiv.addClass("gifDiv");
             var p = $("<p>");
                 p.text("Rated: " + results[i].rating);
 
+            //Adding Favorite Button
+            var span = $("<span>");
+            span.addClass("like-btn");
+
+
             //Creating <img> tag
             var animalgif = $("<img>");
+                    
+                    //Gif's initial state = "still"
+                animalgif.attr("src", results[i].images.fixed_height_still.url);
+                    //Stores gif's Data-state 
+                animalgif.attr("data-still", results[i].images.fixed_height_still.url);
+                animalgif.attr("data-animate", results[i].images.fixed_height.url);
+                animalgif.attr("data-state", "still");
+                    //Added "gif" class to image, so we can add an "onClick" function outside of ajax function
+                animalgif.addClass("gif");
 
-                animalgif.attr("src", results[i].images.fixed_height.url);
-                
-            animalDiv.append(p);
-            animalDiv.prepend(animalgif);
+                animalDiv.append(p);
+                animalDiv.prepend(animalgif);
+                animalDiv.append(span);
 
-        $("#gif-view").append(animalDiv);
+            $("#gif-view").append(animalDiv);
         };
 
     })
-
-    $("")
-
-
-
-
+       
     };
+
+     $(document.body).on("click", ".gif", function() {
+
+        var state = $(this).attr("data-state");
+        console.log(state);
+        console.log(this);
+
+        if (state === "still")
+        {
+            $(this).attr("src", $(this).attr("data-animate"))
+            $(this).attr("data-state", "animate");
+        }
+        else {
+            $(this).attr("src", $(this).attr("data-still"))
+            $(this).attr("data-state", "still");
+        }
+    });
+
+    //Function for animating Favorite Button
+    $(document.body).on('click', '.like-btn', function() {
+        $(this).toggleClass('is-active');
+    });
 
     //Function for displaying Animal Gifs
     function renderButtons() {
@@ -94,7 +178,7 @@
 
         for (var i = 0; i < topics.length; i++) {
             var bttn = $("<button>");
-                //Adding a class to the button
+
             bttn.addClass("animal");
                 //adding attr 
             bttn.attr("data-animal", topics[i]);
@@ -113,6 +197,7 @@
         topics.push(animal);
             //renderButtons function then processes the topics array
         renderButtons();
+        $("#animal-input").val("");
     });
 
     //Adding click event listeners to all elements with a class of "animal"
